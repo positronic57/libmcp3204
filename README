@@ -1,0 +1,100 @@
+Libmcp3204 is a user space C library for communication with Microchip MCP3204 12-bit 4 channel ADC over SPI interface on Linux systems.
+It provides access to MCP3204 ADC using the SPI kernel module present on the system (spi_bcm2708 in case of Rasperry Pi with Raspbian).
+The low level SPI communication (data and control signals) is done by the kernel module, while the library implements the data exchange 
+protocol supported by the MCP3204 ADC.
+
+Ioctl() and SPI_IOC_MESSAGE(N) requests are used to achieve a full-duplex synchronous communication with the ADC. It supports single ended and differential
+input channel modes of MCP3204. The SPI communication can be done either by SPI mode 0,0 or SPI mode 1,1. 
+
+The library has been developed and tested on Raspberry Pi running Raspian.
+
+
+
+Usage
+
+The following functions are included in the library:
+
+- int MCP3204_init(int *fileDescriptor, char *deviceName, MCP3204 *ad, SPIMode spimode, float referenceVoltage, char *errorMessage);
+  
+  The function configures the SPI interface of the system according to MCP3204 requirements. The SPI mode is set by the SPIMode argument which can take
+  one of the following values: mode_SPI_00 and mode_SPI_11. 
+
+  typedef enum spiMode
+  {
+	mode_SPI_00 = 0,
+	mode_SPI_11
+  } SPIMode;
+
+
+  The device file used to access the ADC over SPI is defined by the second argument deviceName.
+  For example: "/dev/spidev0.0" or "/dev/spidev0.1" on Raspberry Pi. The first argument if the file descriptor required for file access operations.
+  
+  The value of the ADC reference voltage is set by the fifth argument called referenceVoltage. The ADC its represented by a structure that holds
+  the reference voltage value together with the digital value which is result of the AD conversion.
+
+  typedef struct mcp3204
+  {
+	uint16_t digitalValue;
+	float referenceVoltage;
+  } MCP3204;
+
+  The function returns 0 if the init process was finished successfully, or 1 in case of an error. The last argument of the init functions points to the 
+  error message string.
+
+  The init function sets the SPI clock frequency by default to 100KHz. The current version of the library doesn't allow change of this parameter. 
+  
+  Code example:
+
+  int fd;
+  MCP3204 ad_MPC3204;
+  char buffer[55];
+
+  MCP3204_init(&fd,"/dev/spidev0.1",&ad_MPC3204,mode_SPI_00,2.5,buffer);
+
+
+- int MCP3204_convert(int, inputChannelMode, inputChannel, MCP3204 *, char *);
+  Sends a command to MCP3204 to start the AD conversion and fetches the digital output in the MCP3204.digitalValue. MCP3204 has four analog inputs which
+  can be configured as single input channels or differential. The channel mode is set by the second argument of type inputChannelMode, defined as:
+
+  typedef enum inputchannelmode
+  {  
+	singleEnded = 0,
+	differential
+  } inputChannelMode;
+
+  The input channel is selected by the third argument of the function inputChannel that can take one of the following values:
+
+  typedef enum inputchannel
+  {  
+	CH0 = 0,
+	CH1,
+	CH2,
+	CH3,
+	CH01,       /* CH0 = IN+, CH1 = IN- */
+	CH10,       /* CH0 = IN-, CH1 = IN+ */
+	CH23,       /* CH2 = IN+, CH3 = IN- */
+	CH32        /* CH2 = IN-, CH3 = IN+ */
+  } inputChannel;
+
+  The function returns 0 for successful execution, or 1 in case of error. The last argument of the function is pointer to the error message string.
+
+
+- uint16_t MCP3204_getValue(MCP3204);
+  Returns the value stored in the MCP3204.digitalValue, which is updated by the MCP3204_convert();
+
+- float MCP3204_analogValue(MCP3204); 
+  Calculates the value of the analog input based on the MCP3204.referenceVoltage and MCP3204.digitalValue. The value of MCP3204.referenceVoltage is set by the
+  MCP3204_init().
+
+The library source code is distributed with example program that demonstrates the usage of the libmcp3024 for temperature measurement with TMP36 analog temperature
+sensor.
+
+
+WARNING: 
+
+The library source is provided as it is without any warranty. Use it on your own risk!
+
+The author does not take any responsibility for the damage caused while using this software.
+ 
+
+

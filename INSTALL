@@ -1,0 +1,36 @@
+Installation manual
+
+
+1. Building the library
+
+Navigate to the library source directory and execute:
+
+        #make
+
+
+2. Installing the library
+
+In the same directory execute the following command:
+
+        #sudo make install
+
+By default the library is installed in /usr/lib folder. The corresponding header file is placed
+in /usr/include folder. Those locations are predefined by the $PREFIX variable in the Makefile.
+For installing the library in a location different than the default one, set the $PREFIX variable
+to desired value.
+
+After successful installation, refresh the list of available libraries:
+
+        #sudo ldconfig
+
+To remove the files created in the source directory during the building process use:
+
+        #make clean       
+
+
+3. Remove/Uninstalling the library
+
+        #sudo make uninstall
+
+This will delete the .so file and the header file form the installation folders.
+
