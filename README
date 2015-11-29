@@ -8,83 +8,49 @@ input channel modes of MCP3204. The SPI communication can be done either by SPI 
 
 The library has been developed and tested on Raspberry Pi running Raspian.
 
+Supported Hardware
 
+The library has been developed and tested on Raspberry Pi.
+Should work on any other Linux system with SPI hardware and apropriate kernel module.
 
 Usage
 
-The following functions are included in the library:
+The initialization of the on-board SPI and MCP3204 is done via MCP3204_init() function.
+For example, if MPC3204 is connected to SPI device /dev/spidev0.1, with reference voltage 2.491V and SPI mode is 0,0 the init function is:
 
-- int MCP3204_init(int *fileDescriptor, char *deviceName, MCP3204 *ad, SPIMode spimode, float referenceVoltage, char *errorMessage);
+	int fd;
+	MCP3204 ADC;
+	char error[20];
+		
+	MCP3204_init(&fd,"/dev/spidev0.1",&ADC,mode_SPI_00,2.491,error);
   
-  The function configures the SPI interface of the system according to MCP3204 requirements. The SPI mode is set by the SPIMode argument which can take
-  one of the following values: mode_SPI_00 and mode_SPI_11. 
+where: 
+	- fd is a file descriptor required for accessing the SPI device file;
+	- ADC is the structure that represents MCP3204;
+	- mode_SPI_00 defines the SPI mode as 0,0;
+	- error points to the error message string generated in case of a failure.
 
-  typedef enum spiMode
-  {
-	mode_SPI_00 = 0,
-	mode_SPI_11
-  } SPIMode;
-
-
-  The device file used to access the ADC over SPI is defined by the second argument deviceName.
-  For example: "/dev/spidev0.0" or "/dev/spidev0.1" on Raspberry Pi. The first argument if the file descriptor required for file access operations.
+The init function sets the SPI clock frequency by default to 100KHz. The current version of the library doesn't support change of this parameter. 
   
-  The value of the ADC reference voltage is set by the fifth argument called referenceVoltage. The ADC its represented by a structure that holds
-  the reference voltage value together with the digital value which is result of the AD conversion.
+After the init process is successfully finished, MCP3204_convert() function starts the AD conversion of the selected analog input channel that can be
+configured as single-ended or pseudo-differential pair. If the analog input is connected to channel 0, then the AD conversion is started
+with:
 
-  typedef struct mcp3204
-  {
-	uint16_t digitalValue;
-	float referenceVoltage;
-  } MCP3204;
+	MCP3204_convert(fd,singleEnded,CH0,&ADC,error);
 
-  The function returns 0 if the init process was finished successfully, or 1 in case of an error. The last argument of the init functions points to the 
-  error message string.
-
-  The init function sets the SPI clock frequency by default to 100KHz. The current version of the library doesn't allow change of this parameter. 
-  
-  Code example:
-
-  int fd;
-  MCP3204 ad_MPC3204;
-  char buffer[55];
-
-  MCP3204_init(&fd,"/dev/spidev0.1",&ad_MPC3204,mode_SPI_00,2.5,buffer);
+where:
+	- fd is the same file descriptor as the one from MCP3204_init() function;
+	- ADC is the structure that represents MCP3204;
+	- error points to the error message string generated in case of a failure.
 
 
-- int MCP3204_convert(int, inputChannelMode, inputChannel, MCP3204 *, char *);
-  Sends a command to MCP3204 to start the AD conversion and fetches the digital output in the MCP3204.digitalValue. MCP3204 has four analog inputs which
-  can be configured as single input channels or differential. The channel mode is set by the second argument of type inputChannelMode, defined as:
+The digital value that is a result of the conversation and the original analog value are available via MCP3204_getValue() and MCP3204_analogValue() functions
+accordingly:
 
-  typedef enum inputchannelmode
-  {  
-	singleEnded = 0,
-	differential
-  } inputChannelMode;
+	MCP3204_getValue(ADC); //returns the result of the ADC
+	MCP3204_analogValue(ADC); //returns the analog value of the input
 
-  The input channel is selected by the third argument of the function inputChannel that can take one of the following values:
-
-  typedef enum inputchannel
-  {  
-	CH0 = 0,
-	CH1,
-	CH2,
-	CH3,
-	CH01,       /* CH0 = IN+, CH1 = IN- */
-	CH10,       /* CH0 = IN-, CH1 = IN+ */
-	CH23,       /* CH2 = IN+, CH3 = IN- */
-	CH32        /* CH2 = IN-, CH3 = IN+ */
-  } inputChannel;
-
-  The function returns 0 for successful execution, or 1 in case of error. The last argument of the function is pointer to the error message string.
-
-
-- uint16_t MCP3204_getValue(MCP3204);
-  Returns the value stored in the MCP3204.digitalValue, which is updated by the MCP3204_convert();
-
-- float MCP3204_analogValue(MCP3204); 
-  Calculates the value of the analog input based on the MCP3204.referenceVoltage and MCP3204.digitalValue. The value of MCP3204.referenceVoltage is set by the
-  MCP3204_init().
+Check the doc folder for detailed description of the library.
 
 The library source code is distributed with example program that demonstrates the usage of the libmcp3024 for temperature measurement with TMP36 analog temperature
 sensor.

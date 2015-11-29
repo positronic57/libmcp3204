@@ -1,6 +1,6 @@
 /*
  * MCP3204 library
- * libmcp3204.h
+ * libmcp3204.c
  *
  * Copyright (c) 2014  Goce Boshkovski
  *
@@ -9,6 +9,14 @@
  * the Free Software Foundation; either version 2 of the License.
  */
 
+/** @file libmcp3204.c
+ *  @brief Implements the functions defined in the header file.
+ *
+ * @author Goce Boshkovski
+ * @date 17-Aug-14
+ * @copyright GNU General Public License v2.
+ *
+ */
 
 #include <stdint.h>
 #include <stdio.h>
@@ -139,7 +147,7 @@ int MCP3204_convert(int fd, inputChannelMode channelMode, inputChannel channel, 
 }
 
 /*
- * Get the digital value already read from the AD converter.
+ * The function returns the result from the AD conversion.
  */
 uint16_t MCP3204_getValue(MCP3204 ad)
 {
@@ -147,7 +155,7 @@ uint16_t MCP3204_getValue(MCP3204 ad)
 }
 
 /*
- * Calculate the value of the analog input.
+ * The function calculates the value of the analog input.
  */
 float MCP3204_analogValue(MCP3204 ad)
 {
