@@ -10,6 +10,7 @@ protocol supported by the MCP3204 ADC.
 Ioctl() and SPI_IOC_MESSAGE(N) requests are used to achieve a full-duplex synchronous communication with the ADC. It supports single ended and differential
 input channel modes of MCP3204. The SPI communication can be done either by SPI mode 0,0 or SPI mode 1,1. 
 
+For C++ version of this library with the same functionality check [libsetila](https://github.com/positronic57/libsetila) project.
 
 #### Supported Hardware
 
